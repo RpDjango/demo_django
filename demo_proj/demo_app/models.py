@@ -43,7 +43,7 @@ class Profile(models.Model):
 class CartDetail(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    total_price = models.FloatField()
+    total_price = models.FloatField(null=True, blank=True)
     quantity = models.IntegerField()
 
 ORDER_STATUS = [

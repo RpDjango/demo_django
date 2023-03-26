@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+import json
 
 # Create your views here.
 def index(request):
@@ -133,7 +134,29 @@ def user_logout(request):
 
 @csrf_exempt
 def add_to_cart(request):
-    if request.method == "POST":
-        quantity = request.POST.get('quantity')
-        product = request.POST.get('product')
-        user = request.POST.get('user')
+    try:
+        if request.method == "POST":
+            data = request.body.decode('utf-8')
+            data = json.loads(data)
+            quantity = data['quantity']
+            product_id = data['product']
+            product = Product.objects.filter(id=product_id).first()
+            user_id = data['user']
+            user = User.objects.filter(id=user_id).first()
+
+            existing_product = CartDetail.objects.filter(user=user_id).filter(product=product_id)
+            if existing_product:
+                # existing_product[0].objects.update(quantity=int(quantity) + int(existing_product[0].quantity))
+                existing_product[0].quantity = int(quantity) + int(existing_product[0].quantity)
+                existing_product[0].save()
+            else:
+                CartDetail.objects.create(product=product, user=user, quantity=quantity)
+            return JsonResponse({'message': 'Successfully added to cart'}, safe=False, status=201)
+    except Exception as e:
+        return JsonResponse({'message': f'Failed to save {e}'}, safe=False, status=500)
+    
+def cart_detail(request):
+    user_id = request.user.id
+    products = CartDetail.objects.filter(user=user_id)
+    context = {"products": products}
+    return render(request, 'cart.html', context)
