@@ -160,3 +160,29 @@ def cart_detail(request):
     products = CartDetail.objects.filter(user=user_id)
     context = {"products": products}
     return render(request, 'cart.html', context)
+
+def del_cart(request,product_id):
+    CartDetail.objects.filter(id=product_id).delete()
+    # return JsonResponse({'message': f'successfully deleted {product_id}'}, safe=False)
+    return redirect("cart_detail")
+
+@csrf_exempt
+def update_cart(request,product_id):
+    if request.method == "POST":
+        user_id = request.user.id
+
+        cart_obj = CartDetail.objects.filter(user=user_id).filter(id=product_id).first()
+        message=""
+        print('inside post method')
+        data = request.body.decode('utf-8')
+        data = json.loads(data)
+        product_quantity = data['quantity']              
+        cart_obj.quantity=product_quantity
+        cart_obj.save()
+        message = "Successfully updated product"
+        return JsonResponse({'message': f'Successfully Updated {product_id}'}, safe=False, status=201)
+    # return JsonResponse({'message': f'Successfully Updated {product_id}'}, safe=False, status=201)
+    
+    
+# def demo(request):
+#     print(request.GET['demo'])

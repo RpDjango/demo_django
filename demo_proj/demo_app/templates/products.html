@@ -26,12 +26,12 @@
     <p class="card-text">{{product.product_description}}</p>
     <p class="card-text">{{product.product_price}}</p>
 
-    <p name="product" id="product">{{product.id}}</p>
+    <p name="product" id="product_{{product.id}}">{{product.id}}</p>
     <p name="user" id="user">{{user.id}}</p>
 
     <a href="/product/{{product.id}}" class="btn btn-primary">Edit</a>
     <a href="/product_delete/{{product.id}}" class="btn btn-danger">Delete</a>
-    <a class="btn btn-primary" onclick="addtocart();">Add to cart</a>
+    <a class="btn btn-primary" onclick="addtocart('{{product.id}}')">Add to cart</a>
 
     <div class="mb-3">
       <label for="quantity" class="form-label">Quantity</label>
@@ -45,17 +45,16 @@
 </div>
 <script>
 
-  function addtocart() {
-    console.log('adsajsd')
+  function addtocart(product_id) {
     user = document.getElementById('user').textContent
-    product = document.getElementById('product').textContent
+    product_id = `product_${product_id}`
+    product = document.getElementById(product_id).textContent
     quantity = document.getElementById('quantity').value
 
     $.ajax({
       type: "POST", //GET or POST or PUT or DELETE verb 
       url: "http://127.0.0.1:8000/add_to_cart/", // Location of the service 
       data: JSON.stringify({
-        'test': 'test',
         'user': user,
         'product': product,
         'quantity': quantity

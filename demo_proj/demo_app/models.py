@@ -55,6 +55,7 @@ ORDER_STATUS = [
 ]
 
 class OrderDetail(models.Model):
+    order_number = models.BigIntegerField(null=True, blank=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_price = models.FloatField()

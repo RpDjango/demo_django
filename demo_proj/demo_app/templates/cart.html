@@ -3,6 +3,19 @@
 {% block content %}
 <h1>Carts</h1>
 <p>You are logged in as: {{user}}</p>
+
+<div role="alert" aria-live="assertive" aria-atomic="true" class="toast" data-autohide="false">
+  <div class="toast-header">
+    <strong class="mr-auto">Bootstrap</strong>
+    <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="toast-body">
+    Successfully Updated the cart
+  </div>
+</div>
+
 {% for product in products %}
 
 <div class="card" style="width: 18rem;">
@@ -17,13 +30,14 @@
     <p hidden name="product" id="product">{{product.id}}</p>
     <p hidden name="user" id="user">{{user.id}}</p>
 
-    <a href="/product/{{product.id}}" class="btn btn-primary">Edit</a>
-    <a href="/product_delete/{{product.id}}" class="btn btn-danger">Delete</a>
+    <button class="btn btn-primary" onclick="update_cart('{{product.id}}');">Edit</button>
+    {% comment %} <a href="/product_delete/{{product.id}}" class="btn btn-danger">Delete</a> {% endcomment %}
+    <a href="{% url 'del_cart' product.id %}" class="btn btn-danger">Delete</a>
+    
     <!-- <a class="btn btn-primary" onclick="addtocart();">Add to cart</a> -->
-
     <div class="mb-3">
       <label for="quantity" class="form-label">Quantity</label>
-      <input type="number" class="form-control" id="quantity" name="quantity" aria-describedby="quantity" value="1">
+      <input type="number" class="form-control" id="quantity_{{product.id}}" name="quantity" aria-describedby="quantity" value="{{product.quantity}}">
     </div>
 
   </div>
@@ -31,21 +45,38 @@
 
 {% endfor %}
 </div>
+
+<div class="modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Product Delete</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure want to delete?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary">Yes</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script>
 
-  function addtocart() {
+  function update_cart(product_id) {
     console.log('adsajsd')
-    user = document.getElementById('user').textContent
-    product = document.getElementById('product').textContent
-    quantity = document.getElementById('quantity').value
+    quantity = document.getElementById(`quantity_${product_id}`).value
 
     $.ajax({
       type: "POST", //GET or POST or PUT or DELETE verb 
-      url: "http://127.0.0.1:8000/add_to_cart/", // Location of the service 
+      url:  `http://127.0.0.1:8000/update_cart/${product_id}/`, // Location of the service 
       data: JSON.stringify({
-        'test': 'test',
-        'user': user,
-        'product': product,
         'quantity': quantity
       }), //Data sent to server
       contentType: "application/json", // content type sent to server 
@@ -55,10 +86,11 @@
       success: function (res) { //On Successfull service call 
         //shell.loaded(); 
         // alert("cross domain ajax success full.");
-
         var result = res['message'];
-        alert("result===" + result);
+        // alert("result===" + result);
+        $('.toast').toast('show')
         // $("#dvAjax").html(result);
+        //window.location.reload();
       },
       error:  function (res) {
         console.log(res['message'])
