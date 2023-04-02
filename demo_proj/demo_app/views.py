@@ -7,7 +7,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 import json
-
+import time
+from django.template.response import TemplateResponse
+from django.views import View
 # Create your views here.
 def index(request):
 #     num_users = User.objects.raw(
@@ -22,7 +24,7 @@ def index(request):
     products = Product.objects.all()
     # print(type(products))
     context = {'products': products}
-    return render(request=request, template_name='products.html', context=context)
+    return TemplateResponse(request, 'products.html', context)
     # return HttpResponse("<p>Index page!</p>")
 
 @csrf_exempt
@@ -186,3 +188,66 @@ def update_cart(request,product_id):
     
 # def demo(request):
 #     print(request.GET['demo'])
+@csrf_exempt
+def create_order(request):
+    try:
+        if request.method == "POST":
+            order_number = time.time()
+            order_status = "order place"
+            user_id = request.user
+            cart_items = CartDetail.objects.filter(user=user_id)
+            total_price = 0
+            for item in cart_items:
+                product = item.product
+                quantity = item.quantity
+                OrderDetail.objects.create(order_number=order_number,
+                                           product=product,
+                                           user=user_id,
+                                           total_price=100,
+                                           quantity=quantity,
+                                           order_status=order_status)
+                CartDetail.objects.filter(id=item.id).delete()
+            return JsonResponse({'message': 'successfully created order'})
+    except Exception as e:
+        return JsonResponse({'message': 'Internal server error'})
+
+
+def order_detail(request):
+    user_id = request.user.id
+    order_details = OrderDetail.objects.filter(user=user_id)
+    orders_dict = {}
+    for order in order_details:
+        if order.order_number in orders_dict:
+            orders_dict[order.order_number]['products'].append({'name': order.product.product_name,
+                                                                 'quantity': order.quantity,
+                                                                 'price': order.total_price,
+                                                                 'status': order.order_status})
+        else:
+            orders_dict[order.order_number] = {'order_number': order.order_number,
+                                                'products': [{'name': order.product.product_name,
+                                                              'quantity': order.quantity,
+                                                              'price': order.total_price,
+                                                              'status': order.order_status}]}
+    orders_list = list(orders_dict.values())
+    context = {"orders": orders_list}
+    return TemplateResponse(request, 'order_detail.html', context)
+
+
+
+# 
+# class CartDetailView(View):
+#     def get(self, request):
+#         user_id = request.user.id
+#         products = CartDetail.objects.filter(user=user_id)
+#         context = {"products": products}
+#         return render(request, 'cart.html', context)
+    # @login_required
+#     def post(self, request):
+#         # Handle POST request to add product to cart
+#         # ...
+#         return redirect('cart_detail')
+
+#     def delete(self, request):
+#         # Handle DELETE request to remove product from cart
+#         # ...
+#         return redirect('cart_detail')

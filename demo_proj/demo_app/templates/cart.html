@@ -2,6 +2,9 @@
 
 {% block content %}
 <h1>Carts</h1>
+
+<button class="btn btn-primary" onclick="create_order()">Buy Now</button>
+
 <p>You are logged in as: {{user}}</p>
 
 <div role="alert" aria-live="assertive" aria-atomic="true" class="toast" data-autohide="false">
@@ -69,15 +72,13 @@
 
 <script>
 
-  function update_cart(product_id) {
+  function create_order() {
     console.log('adsajsd')
-    quantity = document.getElementById(`quantity_${product_id}`).value
 
     $.ajax({
       type: "POST", //GET or POST or PUT or DELETE verb 
-      url:  `http://127.0.0.1:8000/update_cart/${product_id}/`, // Location of the service 
+      url:  `http://127.0.0.1:8000/create_order/`, // Location of the service 
       data: JSON.stringify({
-        'quantity': quantity
       }), //Data sent to server
       contentType: "application/json", // content type sent to server 
       dataType: "json", //Expected data format from server 
